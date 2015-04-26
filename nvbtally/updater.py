@@ -60,7 +60,7 @@ class Updater:
         self.session = self.Session()
         self.session.add(ScannedBlock(height=0))
 
-    def update(self, starting_block):
+    def update(self, starting_block, run_forever=False):
         q = Queue()
 
         top_block = get_latest_block().height - CONFIRMATIONS_NEEDED
@@ -83,11 +83,14 @@ class Updater:
             sleep_for = 30
 
             if n == 0:
-                print(int(time()), 'No blocks with >= 6 confirmations, sleeping for %d seconds then updating...' % sleep_for)
-                sleep(sleep_for)
-                top_block = get_latest_block().height - 6
-                update_queue()
-                continue
+                if run_forever:
+                    print(int(time()), 'No blocks with >= 6 confirmations, sleeping for %d seconds then updating...' % sleep_for)
+                    sleep(sleep_for)
+                    top_block = get_latest_block().height - 6
+                    update_queue()
+                    continue
+                else:
+                    break
 
             to_fetch = [q.get() for _ in range(n)]
             print('Fetching %d, min: %d, max: %d' % (n, min(to_fetch), max(to_fetch)))
@@ -104,4 +107,4 @@ class Updater:
 
 if __name__ == "__main__":
     u = Updater()
-    u.update(350000)
+    u.update(350000, False)
