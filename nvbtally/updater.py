@@ -18,6 +18,8 @@ from .coinsecrets import get_block_range, get_blocks
 engine = create_engine('sqlite:///temp.sqlite', echo=True)
 Base = declarative_base()
 
+CONFIRMATIONS_NEEDED = 6
+
 class Vote(Base):
     __tablename__ = 'votes'
 
@@ -61,7 +63,7 @@ class Updater:
     def update(self, starting_block):
         q = Queue()
 
-        top_block = get_latest_block().height - 6  # require 6 confirmations, presume this is safe
+        top_block = get_latest_block().height - CONFIRMATIONS_NEEDED
         min_block = starting_block
 
         def update_queue():
@@ -81,14 +83,14 @@ class Updater:
             sleep_for = 30
 
             if n == 0:
-                print(int(time()), 'No blocks, sleeping for %d seconds then updating...' % sleep_for)
+                print(int(time()), 'No blocks with >= 6 confirmations, sleeping for %d seconds then updating...' % sleep_for)
                 sleep(sleep_for)
                 top_block = get_latest_block().height - 6
                 update_queue()
                 continue
 
             to_fetch = [q.get() for _ in range(n)]
-            print('Fetching %d, min: %d, max: %d' % (n,min(to_fetch), max(to_fetch)))
+            print('Fetching %d, min: %d, max: %d' % (n, min(to_fetch), max(to_fetch)))
             blocks = get_blocks(*to_fetch)
 
             for block in blocks:
