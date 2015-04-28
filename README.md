@@ -5,14 +5,14 @@
 ### Updater
 
 ```
-python3 -m nvbtally.updater
+python3 -m nvbtally.updater [--watch]
 ```
 
 This populates the DB of nulldatas from api.coinsecrets.org.
 
-Planned: continuous (just need to put args in)
+Planned: watching mode; will wait for new blocks and add them as the come in.
 
-Can be run as cron job
+Can be run as cron job (without `--watch`)
 
 ### Filter
 
@@ -21,14 +21,16 @@ python3 -m nvbtally.filter_votes
 ```
 
 This will filter collected nulldatas into a list of votes.
+Additionally traces transactions back to their origin, finding the metadata.
+Caches results.
 
 ### Tally
 
 ```
-python3 -m nvbtally.tally [resolution]
+python3 -m nvbtally.tally [--hex] NETWORK_NAME RESOLUTION
 ```
 
-This will iterate through all votes and 
+This will iterate through all votes and give a response to the outcome of `RESOLUTION` for `NETWORK_NAME`.
 
 ## Install
 
