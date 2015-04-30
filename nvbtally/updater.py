@@ -69,7 +69,7 @@ class Updater:
 
         def update_queue():
             exclude_blocks = []
-            _chunk = 10
+            _chunk = 750  # 1000 throws exception
             for i in range(min_block, top_block + 1, _chunk):
                 exclude_blocks.extend(self.session.query(ScannedBlock).filter(ScannedBlock.height.in_(range(i, i + _chunk))).all())
             exclude_heights = set([b.height for b in exclude_blocks])
