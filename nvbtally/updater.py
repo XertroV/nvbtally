@@ -17,15 +17,7 @@ from .coinsecrets import get_block_range, get_blocks
 
 from .models import engine, Nulldata, ScannedBlock
 
-
-engine = create_engine('sqlite:///temp.sqlite', echo=True)
-Base = declarative_base()
-
 CONFIRMATIONS_NEEDED = 6
-
-
-
-Base.metadata.create_all(engine)
 
 
 class Updater:
