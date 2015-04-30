@@ -21,15 +21,6 @@ Base = declarative_base()
 
 CONFIRMATIONS_NEEDED = 6
 
-class Vote(Base):
-    __tablename__ = 'votes'
-
-    id = Column(Integer, primary_key=True)
-    txid = Column(String)
-    timestamp = Column(Integer)
-    script = Column(String)
-    address = Column(String)
-
 
 class Nulldata(Base):
     __tablename__ = 'nulldatas'
@@ -61,27 +52,29 @@ class Updater:
         self.session = self.Session()
         self.session.add(ScannedBlock(height=0))
 
-    def update(self, starting_block, run_forever=False):
+    def update(self, starting_block, run_forever=False, sleep_for=30):
         q = Queue()
 
         top_block = get_latest_block().height - CONFIRMATIONS_NEEDED
         min_block = starting_block
 
+        cached_blocks = set()
+
         def update_queue():
-            exclude_blocks = []
+            nonlocal cached_blocks
             _chunk = 750  # 1000 throws exception
             for i in range(min_block, top_block + 1, _chunk):
-                exclude_blocks.extend(self.session.query(ScannedBlock).filter(ScannedBlock.height.in_(range(i, i + _chunk))).all())
-            exclude_heights = set([b.height for b in exclude_blocks])
+                comp_range = list(filter(lambda j: j not in cached_blocks, range(i, i + _chunk)))
+                cached_blocks = cached_blocks | {i.height for i in self.session.query(ScannedBlock).filter(ScannedBlock.height.in_(comp_range)).all()}
             for i in range(min_block, top_block + 1):
-                if i not in exclude_heights:
+                if i not in cached_blocks:
                     q.put(i)
+                    cached_blocks.add(i)
 
         update_queue()
 
         while True:
             n = min(q.qsize(), 50)
-            sleep_for = 30
 
             if n == 0:
                 if run_forever:
@@ -109,8 +102,9 @@ class Updater:
 
 parser = argparse.ArgumentParser(description="Update DB with new OP_RETURN txs.")
 parser.add_argument('--watch', help='Remain open and wait for new blocks.', action='store_true')
+parser.add_argument('--sleepfor', help='Seconds to sleep after update routine', type=int, default=30)
 args = parser.parse_args()
 
 if __name__ == "__main__":
     u = Updater()
-    u.update(350000, args.watch)
+    u.update(350000, args.watch, args.sleepfor)
