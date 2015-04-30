@@ -5,6 +5,7 @@ __author__ = 'xertrov'
 
 from queue import Queue
 from time import sleep, time
+import argparse
 
 from sqlalchemy import create_engine, Column, String, Integer
 from sqlalchemy.orm import sessionmaker
@@ -105,6 +106,11 @@ class Updater:
                 self.session.commit()
                 print('Processed', block['height'])
 
+
+parser = argparse.ArgumentParser(description="Update DB with new OP_RETURN txs.")
+parser.add_argument('--watch', help='Remain open and wait for new blocks.', action='store_true')
+args = parser.parse_args()
+
 if __name__ == "__main__":
     u = Updater()
-    u.update(350000, False)
+    u.update(350000, args.watch)
