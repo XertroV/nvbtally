@@ -1,3 +1,4 @@
+#!/usr/bin/env/python3
 __author__ = 'xertrov'
 
 # run like:
