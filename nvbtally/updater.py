@@ -53,9 +53,9 @@ class Updater:
 
             if n == 0:
                 if run_forever:
-                    print(int(time()), 'No blocks with >= 6 confirmations, sleeping for %d seconds then updating...' % sleep_for)
+                    print(int(time()), 'No blocks with >= %d confirmations, sleeping for %d seconds then updating...' % (CONFIRMATIONS_NEEDED, sleep_for))
                     sleep(sleep_for)
-                    top_block = get_latest_block().height - 6
+                    top_block = get_latest_block().height - CONFIRMATIONS_NEEDED
                     update_queue()
                     continue
                 else:

@@ -9,6 +9,7 @@ from time import sleep
 import logging
 
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import desc
 
 from blockchain.blockexplorer import get_tx
 
@@ -46,7 +47,7 @@ class Tallier:
         votes = []
         delegates = []
         for address, carry in l_address_pairs:
-            vote = self.session.query(Vote).filter(Vote.nulldata.address == address and Vote.res_name == resolution.res_name).first()
+            vote = self.session.query(Vote).filter(Vote.nulldata.address == address and Vote.res_name == resolution.res_name).order_by(desc(Vote.nulldata.height)).first()
             if vote is None:
                 delegate = self.session.query(ValidVoter).filter(ValidVoter.address == address).one().delegate
                 if delegate is None:
