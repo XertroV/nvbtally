@@ -1,7 +1,7 @@
 __author__ = 'xertrov'
 
 # run like:
-# $ python -m nvbtally.updater
+# $ python -m nvbtally.updater -h
 
 from queue import Queue
 from time import sleep, time

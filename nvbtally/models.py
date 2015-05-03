@@ -1,11 +1,12 @@
 __author__ = 'xertrov'
 
+import logging
 
-from sqlalchemy import create_engine, Column, String, Integer, ForeignKey
+from sqlalchemy import create_engine, Column, String, Integer, ForeignKey, Boolean, Index
 from sqlalchemy.orm import sessionmaker, backref, relationship
 from sqlalchemy.ext.declarative import declarative_base
 
-engine = create_engine('sqlite:///temp.sqlite', echo=True)
+engine = create_engine('sqlite:///temp.sqlite')#, echo=True)
 Base = declarative_base()
 
 
@@ -46,6 +47,66 @@ class RawVote(Base):
     nulldata = relationship("Nulldata", uselist=False, backref='raw_vote')
 
 
+class ProcessedVote(Base):
+    __tablename__ = 'processed_votes'
+
+    id = Column(Integer, primary_key=True)
+    raw_vote_id = Column(Integer, ForeignKey('raw_votes.id'), unique=True)
+
+    raw_vote = relationship("RawVote", uselist=False, backref='processed_vote')
+
+    @property
+    def script(self):
+        return self.raw_vote.nulldata.script
+
+
+class Vote(Base):
+    __tablename__ = 'votes'
+
+    vote_num = Column(Integer)
+    res_name = Column(String, ForeignKey('resolutions.res_name'))
+    nulldata_id = Column(Integer, ForeignKey('nulldatas.id'), primary_key=True)
+    voter_id = Column(Integer, ForeignKey('valid_voters.id'))
+
+    resolution = relationship('Resolution', uselist=False, backref='votes')
+    nulldata = relationship('Nulldata', uselist=False, backref='vote')
+    voter = relationship('ValidVoter', uselist=False, backref='vote')
+
+
+class NetworkSettings(Base):
+    __tablename__ = 'network_settings'
+
+    id = Column(Integer, primary_key=True)
+    admin_address = Column(String)
+    network_name = Column(String)
+
+
+class ValidVoter(Base):
+    __tablename__ = 'valid_voters'
+
+    id = Column(Integer, primary_key=True)
+    address = Column(String, unique=True)
+    votes_empowered = Column(Integer)
+
+
+class Delegate(Base):
+    __tablename__ = 'delegates'
+
+    id = Column(Integer, primary_key=True)
+    voter_id = Column(Integer, ForeignKey('valid_voters.id'))
+    delegate_id = Column(Integer, ForeignKey('valid_voters.id'))
+
+
+class Resolution(Base):
+    __tablename__ = 'resolutions'
+
+    res_name = Column(String, primary_key=True)
+    categories = Column(Integer)
+    url = Column(String)
+    end_timestamp = Column(Integer)
+    votes_for = Column(Integer, default=0)
+    votes_total = Column(Integer, default=0)
+    resolved = Column(Boolean, default=False)
 
 
 Base.metadata.create_all(engine)
