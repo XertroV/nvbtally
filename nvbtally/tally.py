@@ -7,19 +7,15 @@ __author__ = 'xertrov'
 from binascii import unhexlify, hexlify
 import argparse
 from time import sleep
-import logging
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import desc
-
-from blockchain.blockexplorer import get_tx
 
 from pycoin.encoding import a2b_base58
 
 from nvblib import instruction_lookup, op_code_lookup, get_op
 from nvblib import CreateNetwork, CastVote, DelegateVote, EmpowerVote, ModResolution
 
-from .coinsecrets import get_block_range, get_blocks
 from .models import engine, Nulldata, FilteredNulldata, RawVote, Vote, ProcessedVote, Resolution, ValidVoter, NetworkSettings, Delegate
 
 
@@ -28,6 +24,8 @@ import logging
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
 
+admin_default = a2b_base58('13MRso7BA6AxEye7PrfT6TdzVHXLZ2DCD5')
+name_default = b'\x04test'
 
 class Tallier:
 
@@ -82,7 +80,7 @@ class Tallier:
         if not condition:
             raise Exception(msg)
 
-    def run(self, admin_address, network_name, watch=False, sleep_for=30):
+    def run(self, admin_address=admin_default, network_name=name_default, watch=False, sleep_for=30):
 
         self.reset_network_settings()
 

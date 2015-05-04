@@ -13,7 +13,6 @@ from sqlalchemy.orm import sessionmaker
 
 from blockchain.blockexplorer import get_tx
 
-from .coinsecrets import get_block_range, get_blocks
 from .models import engine, Nulldata, FilteredNulldata, RawVote
 
 
@@ -77,9 +76,6 @@ class Filterer:
             print("Sleeping for %d seconds." % sleep_for)
             sleep(sleep_for)
             add_unfiltered()
-
-
-
 
 
 parser = argparse.ArgumentParser()

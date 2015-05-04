@@ -8,9 +8,7 @@ from queue import Queue
 from time import sleep, time
 import argparse
 
-from sqlalchemy import create_engine, Column, String, Integer
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 
 from blockchain.blockexplorer import get_latest_block
 
@@ -28,7 +26,7 @@ class Updater:
         self.session = self.Session()
         self.session.add(ScannedBlock(height=0))
 
-    def update(self, starting_block, run_forever=False, sleep_for=30):
+    def run(self, starting_block=350000, run_forever=False, sleep_for=30):
         q = Queue()
 
         top_block = get_latest_block().height - CONFIRMATIONS_NEEDED
@@ -83,4 +81,4 @@ args = parser.parse_args()
 
 if __name__ == "__main__":
     u = Updater()
-    u.update(350000, args.watch, args.sleepfor)
+    u.run(350000, args.watch, args.sleepfor)

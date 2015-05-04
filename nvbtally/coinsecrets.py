@@ -2,7 +2,6 @@ __author__ = 'xertrov'
 
 import json
 
-import requests
 from requests_futures.sessions import FuturesSession
 
 def get_block_range(first, last):

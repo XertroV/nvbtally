@@ -3,10 +3,10 @@ __author__ = 'xertrov'
 import logging
 
 from sqlalchemy import create_engine, Column, String, Integer, ForeignKey, Boolean, Index
-from sqlalchemy.orm import sessionmaker, backref, relationship
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
-engine = create_engine('sqlite:///temp.sqlite')#, echo=True)
+engine = create_engine('sqlite:///temp.sqlite', connect_args={'timeout': 15})#, echo=True)
 Base = declarative_base()
 
 
