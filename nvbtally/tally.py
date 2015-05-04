@@ -15,6 +15,7 @@ from pycoin.encoding import a2b_base58
 
 from nvblib import instruction_lookup, op_code_lookup, get_op
 from nvblib import CreateNetwork, CastVote, DelegateVote, EmpowerVote, ModResolution
+from nvblib.constants import ENDIAN
 
 from .models import engine, Nulldata, FilteredNulldata, RawVote, Vote, ProcessedVote, Resolution, ValidVoter, NetworkSettings, Delegate
 
@@ -41,24 +42,28 @@ class Tallier:
         engine.execute("DROP TABLE resolutions")
         engine.execute("DROP TABLE valid_voters")
         engine.execute("DROP TABLE votes")
+        engine.execute("DROP TABLE delegates")
 
     def find_votes_or_delegates_and_carry(self, l_address_pairs, resolution):
         votes = []
         delegates = []
         for address, carry in l_address_pairs:
-            vote = self.session.query(Vote).filter(Vote.nulldata.address == address and Vote.res_name == resolution.res_name).order_by(desc(Vote.nulldata.height)).first()
+            vote = self.session.query(Vote).filter(Vote.res_name == resolution.res_name).filter(Vote.address == address).order_by(desc(Vote.height)).first()
             if vote is None:
-                delegate = self.session.query(ValidVoter).filter(ValidVoter.address == address).one().delegate
+                voter = self.session.query(ValidVoter).filter(ValidVoter.address == address).one()
+                delegate_id = self.session.query(Delegate).filter(Delegate.voter_id == voter.id).first()
+                delegate_id = delegate_id.id if delegate_id is not None else delegate_id
+                delegate = self.session.query(ValidVoter).filter(ValidVoter.id == delegate_id).one() if delegate_id is not None else None
                 if delegate is None:
                     pass  # explicitly abstain
                 else:
                     delegates.append((delegate, carry))
             else:
-                votes.append((vote.nulldata.address, vote.voter.votes_empowered, vote.vote_num))
+                votes.append((vote.address, vote.voter.votes_empowered, vote.vote_num))
         return votes, delegates
 
     def resolve_resolution(self, resolution):
-        self._assert(resolution.resolved is False, 'resolve_resolution(): Resolution must not be resolved')
+        self._assert(resolution.resolved == 0, 'resolve_resolution(): Resolution must not be resolved')
         valid_voters = self.session.query(ValidVoter).all()
         addresses = [v.address for v in valid_voters]
         l_address_pairs = [(a, a) for a in addresses]
@@ -71,7 +76,8 @@ class Tallier:
         votes_total = sum(map(lambda v: v[1] * 255, votes))
         resolution.votes_for = votes_for
         resolution.votes_total = votes_total
-        resolution.resolved = True
+        resolution.resolved = 1
+        print("resolving: %s, %d for, %d total" % (resolution.res_name, resolution.votes_for, resolution.votes_total))
 
     def reset_network_settings(self):
         self.network_settings = self.session.query(NetworkSettings).filter(NetworkSettings.id == 1).first()
@@ -89,7 +95,7 @@ class Tallier:
             return self.session.query(RawVote).filter(~RawVote.id.in_(processed_raw_vote_ids)).all()
 
         def resolve_if_earlier_than(ts, commit=False):
-            to_resolve = self.session.query(Resolution).filter(Resolution.resolved == False and Resolution.end_timestamp < ts).all()
+            to_resolve = self.session.query(Resolution).filter(Resolution.resolved == 0).filter(Resolution.end_timestamp < ts).all()
             list(map(self.resolve_resolution, to_resolve))
             if commit:
                 self.session.commit()
@@ -114,10 +120,10 @@ class Tallier:
                     if op_type == CastVote:
                         resolution = self.session.query(Resolution).filter(Resolution.res_name == op.resolution).one()
                         voter = self.session.query(ValidVoter).filter(ValidVoter.address == nulldata.address).one()
-                        self.session.merge(Vote(vote_num=op.vote_number, res_name=resolution.res_name, nulldata_id=nulldata.id, voter_id=voter.id))
+                        self.session.merge(Vote(vote_num=int.from_bytes(op.vote_number, ENDIAN), res_name=resolution.res_name, nulldata_id=nulldata.id, voter_id=voter.id, address=nulldata.address, height=nulldata.height))
                     elif op_type == EmpowerVote:
                         self._assert(nulldata.address == self.network_settings.admin_address, 'Admin required')
-                        self.session.merge(ValidVoter(address=op.address_pretty(), votes_empowered=op.votes))
+                        self.session.merge(ValidVoter(address=op.address_pretty(), votes_empowered=int.from_bytes(op.votes, ENDIAN)))
                     elif op_type == DelegateVote:
                         original_voter = self.session.query(ValidVoter).filter(ValidVoter.address == nulldata.address).one()
                         delegate_voter = self.session.query(ValidVoter).filter(ValidVoter.address == op.address_pretty()).first()
@@ -127,7 +133,7 @@ class Tallier:
                         self.session.merge(Delegate(voter_id=original_voter.id, delegate_id=delegate_voter.id))
                     elif op_type == ModResolution:
                         self._assert(nulldata.address == self.network_settings.admin_address, 'Requires Admin')
-                        self.session.merge(Resolution(res_name=op.resolution, url=op.url, end_timestamp=op.end_timestamp, categories=op.categories))
+                        self.session.merge(Resolution(res_name=op.resolution, url=op.url, end_timestamp=int.from_bytes(op.end_timestamp, ENDIAN), categories=int.from_bytes(op.categories, ENDIAN), resolved=0))
 
                 else:
                     raise Exception('Wrong time for instruction')

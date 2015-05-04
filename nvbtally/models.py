@@ -67,6 +67,8 @@ class Vote(Base):
     res_name = Column(String, ForeignKey('resolutions.res_name'))
     nulldata_id = Column(Integer, ForeignKey('nulldatas.id'), primary_key=True)
     voter_id = Column(Integer, ForeignKey('valid_voters.id'))
+    address = Column(String)
+    height = Column(Integer)
 
     resolution = relationship('Resolution', uselist=False, backref='votes')
     nulldata = relationship('Nulldata', uselist=False, backref='vote')
@@ -93,7 +95,7 @@ class Delegate(Base):
     __tablename__ = 'delegates'
 
     id = Column(Integer, primary_key=True)
-    voter_id = Column(Integer, ForeignKey('valid_voters.id'))
+    voter_id = Column(Integer, ForeignKey('valid_voters.id'), unique=True)
     delegate_id = Column(Integer, ForeignKey('valid_voters.id'))
 
 
@@ -106,7 +108,7 @@ class Resolution(Base):
     end_timestamp = Column(Integer)
     votes_for = Column(Integer, default=0)
     votes_total = Column(Integer, default=0)
-    resolved = Column(Boolean, default=False)
+    resolved = Column(Integer, default=0)
 
 
 Base.metadata.create_all(engine)
