@@ -16,7 +16,7 @@ from .coinsecrets import get_block_range, get_blocks
 
 from .models import engine, Nulldata, ScannedBlock
 
-CONFIRMATIONS_NEEDED = 1
+CONFIRMATIONS_NEEDED = 6
 
 
 class Updater:
