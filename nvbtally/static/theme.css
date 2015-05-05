@@ -1,0 +1,174 @@
+body {
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 300;
+  color: #ffffff;
+  background: #222222;
+}
+
+.logio {
+    min-width: 90px;
+}
+
+.navbar-nav li a.active {
+    background: #ddd;
+}
+
+.inner-tab {
+    padding: 0px 20px 0px 20px;
+}
+
+#navbar ul li {
+    font-weight: 600;
+}
+
+.resolution {
+    font-family: 'monospace';
+    text-transform: uppercase;
+}
+
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 300;
+}
+p {
+  font-weight: 300;
+}
+.font-normal {
+  font-weight: 400;
+}
+.font-semi-bold {
+  font-weight: 600;
+}
+.font-bold {
+  font-weight: 700;
+}
+.house-all {
+  margin-top: 30px;
+}
+.house-all .content {
+  margin-left: 10px;
+}
+.house-all .content h1 {
+  margin-top: 10px;
+  font-size: 60px;
+}
+.house-all .content h1 .smaller {
+  font-size: 40px;
+  color: #f2b7bd;
+}
+.house-all .content .lead {
+  font-size: 25px;
+  color: #f2b7bd;
+}
+.house-all .content .lead .font-normal {
+  color: #ffffff;
+}
+.house-all .links {
+  float: right;
+  right: 0;
+  margin-top: 125px;
+}
+.house-all .links ul {
+  display: block;
+  padding: 0;
+  margin: 0;
+}
+.house-all .links ul li {
+  list-style: none;
+  display: inline;
+  margin: 0 10px;
+}
+.house-all .links ul li:first-child {
+  margin-left: 0;
+}
+.house-all .links ul li:last-child {
+  margin-right: 0;
+}
+.house-all .links ul li.current-version {
+  color: #f2b7bd;
+  font-weight: 400;
+}
+.house-all .links ul li a {
+  color: #ffffff;
+}
+.house-all .links ul li a:hover {
+  text-decoration: underline;
+}
+.house-all .links ul li .icon-muted {
+  color: #eb8b95;
+  margin-right: 5px;
+}
+.house-all .links ul li:hover .icon-muted {
+  color: #ffffff;
+}
+.house-all .copyright {
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: #f2b7bd;
+  text-transform: lowercase;
+  float: right;
+  right: 0;
+}
+@media (max-width: 1199px) {
+  .house-all .content h1 {
+    font-size: 45px;
+  }
+  .house-all .content h1 .smaller {
+    font-size: 30px;
+  }
+  .house-all .content .lead {
+    font-size: 20px;
+  }
+}
+@media (max-width: 991px) {
+  .house-all {
+    margin-top: 0;
+  }
+  .house-all .logo {
+    margin: 40px auto;
+  }
+  .house-all .content {
+    margin-left: 0;
+    text-align: center;
+  }
+  .house-all .content h1 {
+    margin-bottom: 20px;
+  }
+  .house-all .links {
+    float: none;
+    text-align: center;
+    margin-top: 60px;
+  }
+  .house-all .copyright {
+    float: none;
+    text-align: center;
+  }
+}
+@media (max-width: 767px) {
+  .house-all .content h1 .smaller {
+    font-size: 25px;
+    display: block;
+  }
+  .house-all .content .lead {
+    font-size: 16px;
+  }
+  .house-all .links {
+    margin-top: 40px;
+  }
+  .house-all .links ul li {
+    display: block;
+    margin: 0;
+  }
+  .house-all .links ul li .icon-muted {
+    display: none;
+  }
+  .house-all .copyright {
+    margin-top: 20px;
+  }
+}
