@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="${request.locale_name}" ng-app="nvbApp">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="pyramid web application">
+    <meta name="author" content="Pylons Project">
+
+    <title>NVB Explorer</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="${request.static_url('nvbtally:static/bootstrap.css')}" rel="stylesheet">
+    <link href="${request.static_url('nvbtally:static/theme.css')}" rel="stylesheet">
+
+    <script src="${request.static_url('nvbtally:static/angular.js')}" type="text/javascript"></script>
+    <script src="${request.static_url('nvbtally:static/nvbtally.js')}" type="text/javascript"></script>
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="${request.static_url('nvbtally:static/html5shiv.js')}"></script>
+    <script src="${request.static_url('nvbtally:static/respond.js')}"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+<div class="house-all">
+
+    <div class="container" ng-controller="TabController as tab">
+
+        <nav class="navbar navbar-default">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand" href="#">NVB Explorer</a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li ng-repeat="name in tab.tabsLeft">
+                            <a href="#" ng-class="{active: tab.is(name)}" ng-click="tab.set(name)">{{name | uppercase}}</a>
+                        </li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li ng-repeat="name in tab.tabsRight">
+                            <a href="#" ng-class="{active: tab.is(name)}" ng-click="tab.set(name)">{{name | uppercase}}</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="row">
+            <div class="col-md-12">
+                
+                <div class="content" ng-show="tab.is('info')" ng-controller="InfoCtrl as info">
+                    <h1>NVB General Info</h1><hr>
+                </div>
+        
+                <div class="content" ng-show="tab.is('resolutions')">
+                    <div class="col-md-6">
+                        <h1>Unfinalized Resolutions</h1><hr>
+                    </div>
+                    <div class="col-md-6">
+                        <h1>Finalized Resolutions</h1><hr>
+                    </div>
+                </div>
+        
+        
+                <div class="content" ng-show="tab.is('votes')">
+                    <h1>NVB Votes</h1><hr>
+                </div>
+        
+                <div class="content" ng-show="tab.is('about')">
+                    <h1>About</h1><hr>
+                </div>
+                
+            </div>
+        </div>
+
+                
+        
+
+
+    </div>
+
+</div>
+</body>
+</html>

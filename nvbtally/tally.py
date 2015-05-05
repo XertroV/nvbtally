@@ -51,15 +51,17 @@ class Tallier:
             vote = self.session.query(Vote).filter(Vote.res_name == resolution.res_name).filter(Vote.address == address).order_by(desc(Vote.height)).first()
             if vote is None:
                 voter = self.session.query(ValidVoter).filter(ValidVoter.address == address).one()
-                delegate_id = self.session.query(Delegate).filter(Delegate.voter_id == voter.id).first()
-                delegate_id = delegate_id.id if delegate_id is not None else delegate_id
+                delegate_record = self.session.query(Delegate).filter(Delegate.voter_id == voter.id).first()
+                delegate_id = delegate_record.delegate_id if delegate_record is not None else delegate_record
                 delegate = self.session.query(ValidVoter).filter(ValidVoter.id == delegate_id).one() if delegate_id is not None else None
                 if delegate is None:
                     pass  # explicitly abstain
                 else:
-                    delegates.append((delegate, carry))
+                    delegates.append((delegate.address, carry))
             else:
-                votes.append((vote.address, vote.voter.votes_empowered, vote.vote_num))
+                empowerment = self.session.query(ValidVoter).filter(ValidVoter.address == carry).one().votes_empowered
+                votes.append((vote.address, empowerment, vote.vote_num))
+        print(votes, delegates)
         return votes, delegates
 
     def resolve_resolution(self, resolution):
@@ -133,14 +135,15 @@ class Tallier:
                         self.session.merge(Delegate(voter_id=original_voter.id, delegate_id=delegate_voter.id))
                     elif op_type == ModResolution:
                         self._assert(nulldata.address == self.network_settings.admin_address, 'Requires Admin')
+                        self._assert(self.session.query(Resolution).filter(Resolution.res_name == op.resolution).filter(Resolution.resolved == 1).first() is None, 'Cannot modify a resolved resolution')
                         self.session.merge(Resolution(res_name=op.resolution, url=op.url, end_timestamp=int.from_bytes(op.end_timestamp, ENDIAN), categories=int.from_bytes(op.categories, ENDIAN), resolved=0))
 
                 else:
                     raise Exception('Wrong time for instruction')
                 self.session.commit()  # if we get to the end commit
-                print('Success:', nulldata.script, 'committed')
+                print('Success:', op.decode(), 'committed')
             except Exception as e:
-                print('Failed:', nulldata.script, e.__class__, e)
+                print('Failed:', op.decode(), e.__class__, e)
             finally:
                 # if something is wrong do not commit, if we already commit()'d this does nothing
                 self.session.rollback()
@@ -175,6 +178,7 @@ parser.add_argument('--watch', help='Watch for changes and update', action='stor
 parser.add_argument('--reset-db', help='Reset DB tables corresponding to TALLIED votes', action='store_true')
 parser.add_argument('--set-admin', help='Set admin address', type=str, default=None)
 parser.add_argument('--set-name', help='Set network name (hex encoded)', type=str, default=None)
+parser.add_argument('--use-default', help='Use default network params', action='store_true')
 args = parser.parse_args()
 
 if __name__ == "__main__":
@@ -183,11 +187,14 @@ if __name__ == "__main__":
         tallier.reset_db()
     else:
         if args.set_admin is None and args.set_name is None:
-            try:
-                admin, name = tallier.network_settings.admin_address, tallier.network_settings.network_name
-            except AttributeError as e:
-                print(e)
-                print('If network is not initialized please manually set network admin ')
+            if args.use_default:
+                admin, name = admin_default, name_default
+            else:
+                try:
+                    admin, name = tallier.network_settings.admin_address, tallier.network_settings.network_name
+                except AttributeError as e:
+                    print(e)
+                    print('If network is not initialized please manually set network admin ')
         else:
             if args.set_name is None or args.set_admin is None:
                 raise argparse.ArgumentError('if --set-admin is used, --set-name is required, and vice versa')

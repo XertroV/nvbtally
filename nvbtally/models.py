@@ -94,8 +94,7 @@ class ValidVoter(Base):
 class Delegate(Base):
     __tablename__ = 'delegates'
 
-    id = Column(Integer, primary_key=True)
-    voter_id = Column(Integer, ForeignKey('valid_voters.id'), unique=True)
+    voter_id = Column(Integer, ForeignKey('valid_voters.id'), primary_key=True)
     delegate_id = Column(Integer, ForeignKey('valid_voters.id'))
 
 

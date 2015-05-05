@@ -65,6 +65,7 @@ class Filterer:
             self.session.commit()
 
             for nd in get_addrs_for:
+                print('Getting Address for %s' % nd.txid)
                 tx = get_tx(tx_id=nd.txid)  # this is REALLY slow, TODO : parallelize like coinsecrets.
                 nd.address = find_address_for_nulldata(nd, tx)
                 self.session.commit()
