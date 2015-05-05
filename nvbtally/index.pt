@@ -54,14 +54,46 @@
                 
                 <div class="content" ng-show="tab.is('info')" ng-controller="InfoCtrl as info">
                     <h1>NVB General Info</h1><hr>
+                    <table>
+                        <tr ng-repeat="(description, value) in info.content">
+                            <td>{{description}}</td>
+                            <td>{{value}}</td>
+                        </tr>
+                    </table>
                 </div>
         
-                <div class="content" ng-show="tab.is('resolutions')">
+                <div class="content" ng-show="tab.is('resolutions')" ng-controller="ResolutionCtrl as res">
                     <div class="col-md-6">
                         <h1>Unfinalized Resolutions</h1><hr>
+                        <table>
+                            <tr>
+                                <th>Name</th>
+                                <th>URL</th>
+                                <th>End Time</th>
+                            </tr>
+                            <tr ng-repeat="r in res.unfinalized">
+                                <td>{{r[0]}}</td>
+                                <td>{{r[1]}}</td>
+                                <td>{{r[2] * 1000 | date : 'hh:mm dd/MM/yy' }}</td>
+                            </tr>
+                        </table>
                     </div>
                     <div class="col-md-6">
                         <h1>Finalized Resolutions</h1><hr>
+                        <table>
+                            <tr>
+                                <th>Name</th>
+                                <th>URL</th>
+                                <th>Votes For</th>
+                                <th>Votes Total</th>
+                            </tr>
+                            <tr ng-repeat="r in res.finalized">
+                                <td>{{r[0]}}</td>
+                                <td>{{r[1]}}</td>
+                                <td>{{r[2]}}</td>
+                                <td>{{r[3]}}</td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
         
@@ -70,6 +102,10 @@
                     <h1>NVB Votes</h1><hr>
                 </div>
         
+                <div class="content" ng-show="tab.is('voters')">
+                    <h1>Voters</h1><hr>
+                </div>
+
                 <div class="content" ng-show="tab.is('about')">
                     <h1>About</h1><hr>
                 </div>
