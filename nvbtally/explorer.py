@@ -15,12 +15,21 @@ def _all_b_to_str(l):
     return list(map(lambda i: str(i), l))
 
 
+def give_session(f):
+    def inner(request):
+        s = Session()
+        r = f(request, s)
+        s.close()
+        return r
+    return inner
+
+
 def index_view(request):
     return {}
 
 
-def info_json(request):
-    session = Session()
+@give_session
+def info_json(request, session):
     ns = session.query(NetworkSettings).first()
     return {
         'Admin ID': str(ns.admin_address),
@@ -28,8 +37,8 @@ def info_json(request):
     }
 
 
-def resolutions_json(request):
-    session = Session()
+@give_session
+def resolutions_json(request, session):
     rs = session.query(Resolution).all()
     rs_unresolved = list(map(lambda r: [str(r.res_name), str(r.url), r.end_timestamp], filter(lambda r: r.resolved == 0, rs)))
     rs_resolved = list(map(lambda r: [str(r.res_name), str(r.url), r.votes_for // 255, r.votes_total // 255], filter(lambda r: r.resolved == 1, rs)))
@@ -37,6 +46,18 @@ def resolutions_json(request):
         'unfinalized': rs_unresolved,
         'finalized': rs_resolved,
     }
+
+
+@give_session
+def voters_json(request, session):
+    vs = session.query(ValidVoter).all()
+    return {'voters': list(map(lambda v: (v.address, v.votes_empowered), vs))}
+
+
+@give_session
+def votes_json(request, session):
+    rs = session.query(Vote).all()
+    return {'votes': list(map(lambda v: {'res_name': v.res_name.decode(), 'address': v.address, 'txid': v.nulldata.txid, 'vote_num': v.vote_num}, rs))}
 
 
 def main(global_config, **settings):
@@ -51,6 +72,11 @@ def main(global_config, **settings):
     config.add_route('resolutions', '/resolutions')
     config.add_view(resolutions_json, route_name='resolutions', renderer='json')
 
+    config.add_route('voters', '/voters')
+    config.add_view(voters_json, route_name='voters', renderer='json')
+
+    config.add_route('votes', '/votes')
+    config.add_view(votes_json, route_name='votes', renderer='json')
 
     config.add_static_view(name='static', path='nvbtally:static')
 

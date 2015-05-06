@@ -32,9 +32,15 @@
         <nav class="navbar navbar-default">
             <div class="container-fluid">
                 <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#main-navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
                     <a class="navbar-brand" href="#">NVB Explorer</a>
                 </div>
-                <div id="navbar" class="navbar-collapse collapse">
+                <div id="main-navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
                         <li ng-repeat="name in tab.tabsLeft">
                             <a href="#" ng-class="{active: tab.is(name)}" ng-click="tab.set(name)">{{name | uppercase}}</a>
@@ -44,6 +50,7 @@
                         <li ng-repeat="name in tab.tabsRight">
                             <a href="#" ng-class="{active: tab.is(name)}" ng-click="tab.set(name)">{{name | uppercase}}</a>
                         </li>
+                        <li><a href="#" ng-click="tab.refresh()"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></a></li>
                     </ul>
                 </div>
             </div>
@@ -54,7 +61,7 @@
                 
                 <div class="content" ng-show="tab.is('info')" ng-controller="InfoCtrl as info">
                     <h1>NVB General Info</h1><hr>
-                    <table>
+                    <table class="table">
                         <tr ng-repeat="(description, value) in info.content">
                             <td>{{description}}</td>
                             <td>{{value}}</td>
@@ -65,7 +72,7 @@
                 <div class="content" ng-show="tab.is('resolutions')" ng-controller="ResolutionCtrl as res">
                     <div class="col-md-6">
                         <h1>Unfinalized Resolutions</h1><hr>
-                        <table>
+                        <table class="table">
                             <tr>
                                 <th>Name</th>
                                 <th>URL</th>
@@ -80,30 +87,50 @@
                     </div>
                     <div class="col-md-6">
                         <h1>Finalized Resolutions</h1><hr>
-                        <table>
+                        <table class="table">
                             <tr>
                                 <th>Name</th>
                                 <th>URL</th>
                                 <th>Votes For</th>
                                 <th>Votes Total</th>
                             </tr>
-                            <tr ng-repeat="r in res.finalized">
-                                <td>{{r[0]}}</td>
-                                <td>{{r[1]}}</td>
-                                <td>{{r[2]}}</td>
-                                <td>{{r[3]}}</td>
+                            <tr ng-repeat="row in res.finalized">
+                                <td ng-repeat="elem in row track by $index">{{elem}}</td>
                             </tr>
                         </table>
                     </div>
                 </div>
         
         
-                <div class="content" ng-show="tab.is('votes')">
+                <div class="content" ng-show="tab.is('votes')" ng-controller="VotesCtrl as votes">
                     <h1>NVB Votes</h1><hr>
+                    <table class="table">
+                        <tr>
+                            <th>Resolution</th>
+                            <th>Voter</th>
+                            <th>Vote in Favour</th>
+                            <th>TXID</th>
+                        </tr>
+                        <tr ng-repeat="row in votes.list">
+                            <td>{{row['res_name']}}</td>
+                            <td>{{row['address']}}</td>
+                            <td>{{row['vote_num'] * 100 / 255 | number : 2}}%</td>
+                            <td><a href="https://blockchain.info/tx/{{row['txid']}}">{{row['txid'] | limitTo:12}}...</a></td>
+                        </tr>
+                    </table>
                 </div>
         
-                <div class="content" ng-show="tab.is('voters')">
+                <div class="content" ng-show="tab.is('voters')" ng-controller="VotersCtrl as voters">
                     <h1>Voters</h1><hr>
+                    <table class="table">
+                        <tr>
+                            <th>Public ID</th>
+                            <th>Number of votes</th>
+                        </tr>
+                        <tr ng-repeat="row in voters.list">
+                            <td ng-repeat="element in row track by $index">{{element}}</td>
+                        </tr>
+                    </table>
                 </div>
 
                 <div class="content" ng-show="tab.is('about')">
@@ -120,5 +147,9 @@
     </div>
 
 </div>
+
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
 </body>
 </html>
