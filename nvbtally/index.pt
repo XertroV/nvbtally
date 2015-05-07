@@ -80,7 +80,7 @@
                                 <th>End Time</th>
                             </tr>
                             <tr ng-repeat="row in res.unfinalized">
-                                <td><a href="#res_detail" ng-click="res.set_detail(row['name']); tab.set('res_detail')">{{row['name']}}</a></td>
+                                <td><a href="#res_detail" ng-click="tab.set_res_detail(row['name']); tab.set('res_detail')">{{row['name']}}</a></td>
                                 <td>{{row['url']}}</td>
                                 <td>{{(row['predicted_total'] == 0) ? (0) : (row['predicted_for'] / row['predicted_total'] * 100) | number:2}}%</td>
                                 <td>{{row['end'] * 1000 | date : 'hh:mm dd/MM/yy' }}</td>
@@ -98,7 +98,7 @@
                                 <th>Votes In Favour</th>
                             </tr>
                             <tr ng-repeat="row in res.finalized">
-                                <td><a href="#res_detail" ng-click="res.set_detail(row['name']); tab.set('res_detail')">{{row['name']}}</a></td>
+                                <td><a href="#res_detail" ng-click="tab.set_res_detail(row['name']); tab.set('res_detail')">{{row['name']}}</a></td>
                                 <td>{{row['url']}}</td>
                                 <td>{{row['votes_for']}}</td>
                                 <td>{{row['votes_total']}}</td>
@@ -134,7 +134,7 @@
 
 
                 <div class="content" ng-show="tab.is('votes')" ng-controller="VotesCtrl as votes">
-                    <h1>NVB Votes</h1><hr>
+                    <h1>Votes</h1><hr>
                     <table class="table">
                         <tr>
                             <th>Resolution</th>
@@ -143,7 +143,7 @@
                             <th>TXID</th>
                         </tr>
                         <tr ng-repeat="row in votes.list">
-                            <td>{{row['res_name']}}</td>
+                            <td><a href="#" ng-click="tab.set_res_detail(row['res_name']); tab.set('res_detail')">{{row['res_name']}}</a></td>
                             <td>{{row['address']}}</td>
                             <td>{{row['vote_num'] * 100 / 255 | number : 2}}%</td>
                             <td><a href="https://blockchain.info/tx/{{row['txid']}}">{{row['txid'] | limitTo:12}}...</a></td>

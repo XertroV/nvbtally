@@ -33,11 +33,17 @@
 
         tab.is = function(t){
             return (t == tab.current);
-        }
+        };
 
         tab.refresh = function(){
             refresh_name(tab.current);
-        }
+        };
+
+        tab.set_res_detail = function(name){
+            $log.log(name);
+            res_detail_name = name;
+            refresh_name('res_detail');
+        };
     }]);
 
     app.controller('InfoCtrl', ['$log', '$http', function($log, $http){
@@ -73,10 +79,6 @@
         res.refresh();
         add_refresh('resolutions', res.refresh);
 
-        res.set_detail = function(res_name){
-            res_detail_name = res_name;
-            refresh_name('res_detail');
-        }
     }]);
 
     app.controller('VotesCtrl', ['$log', '$http', function($log, $http){
