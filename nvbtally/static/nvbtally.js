@@ -12,6 +12,7 @@
     }
 
     res_detail_name = '';
+    voter_detail_address = '';
 
     app = angular.module("nvbApp", []);
 
@@ -40,9 +41,13 @@
         };
 
         tab.set_res_detail = function(name){
-            $log.log(name);
             res_detail_name = name;
             refresh_name('res_detail');
+        };
+
+        tab.set_voter_detail = function(address){
+            voter_detail_address = address;
+            refresh_name('voter_detail');
         };
     }]);
 
@@ -81,6 +86,30 @@
 
     }]);
 
+    app.controller('ResolutionDetailCtrl', ['$log', '$http', '$scope', function($log, $http, $scope){
+        var resdet = this;
+        resdet.name = '';
+
+        resdet.refresh = function(){
+            resdet.res = {};
+            resdet.votes = [];
+            resdet.name = res_detail_name;
+            $log.log(resdet.name);
+            if (resdet.name != ''){
+                $http.post('/res_detail', {res_name: resdet.name})
+                    .success(function(data){
+                        resdet.res = data.resolution;
+                        resdet.votes = data.votes;
+                        $log.log(data.resolution);
+                    })
+                    .error(function(error,a,b,c){
+                    });
+            }
+        };
+        resdet.refresh();
+        add_refresh('res_detail', resdet.refresh);
+    }]);
+
     app.controller('VotesCtrl', ['$log', '$http', function($log, $http){
         $log.log(this);
         var votes = this;
@@ -116,28 +145,25 @@
         add_refresh('voters', voters.refresh);
     }]);
 
-    app.controller('ResolutionDetailCtrl', ['$log', '$http', '$scope', function($log, $http, $scope){
-        var resdet = this;
-        resdet.name = '';
+    app.controller('VoterDetailCtrl', ['$log', '$http', '$scope', function($log, $http, $scope){
+        var votdet = this;
 
-        resdet.refresh = function(){
-            resdet.res = {};
-            resdet.votes = [];
-            resdet.name = res_detail_name;
-            $log.log(resdet.name);
-            if (resdet.name != ''){
-                $http.post('/res_detail', {res_name: resdet.name})
+        votdet.refresh = function(){
+            votdet.voter = {};
+            votdet.votes = [];
+            votdet.address = voter_detail_address;
+            if (votdet.address != ''){
+                $http.post('/voter_detail', {address: votdet.address})
                     .success(function(data){
-                        resdet.res = data.resolution;
-                        resdet.votes = data.votes;
-                        $log.log(data.resolution);
+                        votdet.voter = data.voter;
+                        votdet.votes = data.votes;
                     })
                     .error(function(error,a,b,c){
                     });
             }
         };
-        resdet.refresh();
-        add_refresh('res_detail', resdet.refresh);
+        votdet.refresh();
+        add_refresh('voter_detail', votdet.refresh);
     }]);
 
 })();

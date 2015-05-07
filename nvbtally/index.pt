@@ -125,7 +125,7 @@
                             <th>TXID</th>
                         </tr>
                         <tr ng-repeat="vote in resdet.votes">
-                            <td>{{vote['address']}}</td>
+                            <td><a href="#" ng-click="tab.set_voter_detail(vote['address']); tab.set('voter_detail')">{{vote['address']}}</a></td>
                             <td>{{vote['vote_num'] * 100 / 255 | number : 2}}%</td>
                             <td><a href="https://blockchain.info/tx/{{vote['txid']}}">{{vote['txid'] | limitTo:12}}...</a></td>
                         </tr>
@@ -144,7 +144,7 @@
                         </tr>
                         <tr ng-repeat="row in votes.list">
                             <td><a href="#" ng-click="tab.set_res_detail(row['res_name']); tab.set('res_detail')">{{row['res_name']}}</a></td>
-                            <td>{{row['address']}}</td>
+                            <td><a href="#" ng-click="tab.set_voter_detail(row['address']); tab.set('voter_detail')">{{row['address']}}</a></td>
                             <td>{{row['vote_num'] * 100 / 255 | number : 2}}%</td>
                             <td><a href="https://blockchain.info/tx/{{row['txid']}}">{{row['txid'] | limitTo:12}}...</a></td>
                         </tr>
@@ -158,8 +158,18 @@
                             <th>Public ID</th>
                             <th>Number of votes</th>
                         </tr>
-                        <tr ng-repeat="row in voters.list">
-                            <td ng-repeat="element in row track by $index">{{element}}</td>
+                        <tr ng-repeat="voter in voters.list">
+                            <td><a href="#" ng-click="tab.set_voter_detail(voter['address']); tab.set('voter_detail')">{{voter['address']}}</a></td>
+                            <td>{{voter['empowerment']}}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="content" ng-show="tab.is('voter_detail')" ng-controller="VoterDetailCtrl as votdet">
+                    <h2>Voter {{votdet.voter['address']}}</h2><hr>
+                    <table class="table">
+                        <tr ng-repeat="(key, value) in votdet.voter">
+                            <th>{{key}}</th><td>{{value}}</td>
                         </tr>
                     </table>
                 </div>

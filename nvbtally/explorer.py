@@ -5,9 +5,9 @@ from pyramid.config import Configurator
 from pyramid.response import Response
 
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import func
+from sqlalchemy import func, and_
 
-from .models import engine, NetworkSettings, Resolution, Vote, ValidVoter, Nulldata
+from .models import engine, NetworkSettings, Resolution, Vote, ValidVoter, Nulldata, Delegate
 
 Session = sessionmaker(bind=engine)
 
@@ -59,7 +59,19 @@ def resolutions_json(request, session):
 @give_session
 def voters_json(request, session):
     vs = session.query(ValidVoter).all()
-    return {'voters': list(map(lambda v: (v.address, v.votes_empowered), vs))}
+    return {'voters': list(map(lambda v: {'address': v.address, 'empowerment': v.votes_empowered}, vs))}
+
+
+@give_session
+def voter_detail_json(request, session):
+    voter = session.query(ValidVoter).filter(ValidVoter.address == request.json_body['address']).one()
+    delegate_map = session.query(Delegate).filter(Delegate.voter_id == voter.id).first()
+    delegate_addr = None if delegate_map is None else session.query(ValidVoter).filter(ValidVoter.id == delegate_map.delegate_id).one().address
+    votes = session.query(Vote).filter(Vote.address == voter.address).all()
+    return {
+        'voter': {'delegate': delegate_addr, 'empowerment': voter.votes_empowered, 'num_votes': len(votes), 'address': voter.address},
+        'votes': [{'res_name': v.res_name.decode(), 'superseded': v.superseded, 'vote_num': v.vote_num / 255, 'txid': v.nulldata.txid} for v in votes]
+    }
 
 
 @give_session
@@ -93,6 +105,9 @@ def main(global_config, **settings):
 
     config.add_route('voters', '/voters')
     config.add_view(voters_json, route_name='voters', renderer='json')
+
+    config.add_route('voter_detail', '/voter_detail')
+    config.add_view(voter_detail_json, route_name='voter_detail', renderer='json')
 
     config.add_route('votes', '/votes')
     config.add_view(votes_json, route_name='votes', renderer='json')
