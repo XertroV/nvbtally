@@ -130,6 +130,7 @@ class Tallier:
                     # this is the main operation centre
                     if op_type == CastVote:
                         resolution = self.session.query(Resolution).filter(Resolution.res_name == op.resolution).one()
+                        self._assert(nulldata.timestamp < resolution.end_timestamp, 'Cannot modify a vote for a resolution that has finished.')
                         voter = self.session.query(ValidVoter).filter(ValidVoter.address == nulldata.address).one()
                         self.mark_superseded(voter.address, resolution.res_name)
                         self.session.merge(Vote(vote_num=int.from_bytes(op.vote_number, ENDIAN), res_name=resolution.res_name, nulldata_id=nulldata.id, voter_id=voter.id, address=nulldata.address, height=nulldata.height))

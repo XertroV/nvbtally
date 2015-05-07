@@ -12,6 +12,10 @@ setup(
                         'nvblib>=0.0.1',
                         'pyramid',
                         'pyramid_chameleon',
+                        'waitress',
+                        'pycoin',
+                        'sqlalchemy',
+                        'blockchain',
                         ],
 
     entry_points="""

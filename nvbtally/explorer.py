@@ -5,8 +5,9 @@ from pyramid.config import Configurator
 from pyramid.response import Response
 
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import func
 
-from .models import engine, NetworkSettings, Resolution, Vote, ValidVoter
+from .models import engine, NetworkSettings, Resolution, Vote, ValidVoter, Nulldata
 
 Session = sessionmaker(bind=engine)
 
@@ -31,9 +32,16 @@ def index_view(request):
 @give_session
 def info_json(request, session):
     ns = session.query(NetworkSettings).first()
+    max_height = session.query(func.max(Nulldata.height)).one()[0]
+    num_vote_actions = session.query(func.count(Vote.nulldata_id)).one()[0]
+    num_voters = session.query(func.count(ValidVoter.id)).one()[0]
+
     return {
         'Admin ID': str(ns.admin_address),
         'Network Name': str(ns.network_name),
+        'Chain Height (with confirmations)': max_height,
+        'Number of Vote Actions': num_vote_actions,
+        'Number of Voters': num_voters,
     }
 
 
