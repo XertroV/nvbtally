@@ -93,9 +93,14 @@
                                 <th>URL</th>
                                 <th>Votes For</th>
                                 <th>Votes Total</th>
+                                <th>Votes In Favour</th>
                             </tr>
                             <tr ng-repeat="row in res.finalized">
-                                <td ng-repeat="elem in row track by $index">{{elem}}</td>
+                                <td>{{row[0]}}</td>
+                                <td>{{row[1]}}</td>
+                                <td>{{row[2]}}</td>
+                                <td>{{row[3]}}</td>
+                                <td>{{(row[3] != 0) ? (100.0 * row[2] / row[3]) : 0 | number:2}}%</td>
                             </tr>
                         </table>
                     </div>
