@@ -64,7 +64,7 @@ class Tallier:
         print(votes, delegates)
         return votes, delegates
 
-    def resolve_resolution(self, resolution):
+    def resolve_resolution(self, resolution, final=True):
         self._assert(resolution.resolved == 0, 'resolve_resolution(): Resolution must not be resolved')
         valid_voters = self.session.query(ValidVoter).all()
         addresses = [v.address for v in valid_voters]
@@ -78,11 +78,20 @@ class Tallier:
         votes_total = sum(map(lambda v: v[1] * 255, votes))
         resolution.votes_for = votes_for
         resolution.votes_total = votes_total
-        resolution.resolved = 1
-        print("resolving: %s, %d for, %d total" % (resolution.res_name, resolution.votes_for, resolution.votes_total))
+        if final:
+            resolution.resolved = 1
+            print("resolving: %s, %d for, %d total" % (resolution.res_name, resolution.votes_for, resolution.votes_total))
+        else:
+            print("predicting res: %s, %d for, %d total" % (resolution.res_name, resolution.votes_for, resolution.votes_total))
+
 
     def reset_network_settings(self):
         self.network_settings = self.session.query(NetworkSettings).filter(NetworkSettings.id == 1).first()
+
+    def mark_superseded(self, address, res_name):
+        def mark(vote):
+            vote.superseded = True
+        list(map(mark, self.session.query(Vote).filter(Vote.address == address).filter(Vote.res_name == res_name).all()))
 
     def _assert(self, condition, msg):
         if not condition:
@@ -122,7 +131,9 @@ class Tallier:
                     if op_type == CastVote:
                         resolution = self.session.query(Resolution).filter(Resolution.res_name == op.resolution).one()
                         voter = self.session.query(ValidVoter).filter(ValidVoter.address == nulldata.address).one()
+                        self.mark_superseded(voter.address, resolution.res_name)
                         self.session.merge(Vote(vote_num=int.from_bytes(op.vote_number, ENDIAN), res_name=resolution.res_name, nulldata_id=nulldata.id, voter_id=voter.id, address=nulldata.address, height=nulldata.height))
+                        self.resolve_resolution(resolution, final=False)
                     elif op_type == EmpowerVote:
                         self._assert(nulldata.address == self.network_settings.admin_address, 'Admin required')
                         self.session.merge(ValidVoter(address=op.address_pretty(), votes_empowered=int.from_bytes(op.votes, ENDIAN)))

@@ -69,6 +69,7 @@ class Vote(Base):
     voter_id = Column(Integer, ForeignKey('valid_voters.id'))
     address = Column(String)
     height = Column(Integer)
+    superseded = Column(Boolean, default=False)
 
     resolution = relationship('Resolution', uselist=False, backref='votes')
     nulldata = relationship('Nulldata', uselist=False, backref='vote')

@@ -40,8 +40,8 @@ def info_json(request, session):
 @give_session
 def resolutions_json(request, session):
     rs = session.query(Resolution).all()
-    rs_unresolved = list(map(lambda r: [str(r.res_name), str(r.url), r.end_timestamp], filter(lambda r: r.resolved == 0, rs)))
-    rs_resolved = list(map(lambda r: [str(r.res_name), str(r.url), r.votes_for // 255, r.votes_total // 255], filter(lambda r: r.resolved == 1, rs)))
+    rs_unresolved = list(map(lambda r: {'name': r.res_name.decode(), 'url': r.url.decode(), 'predicted_for': r.votes_for / 255, 'predicted_total': r.votes_total / 255, 'end': r.end_timestamp}, filter(lambda r: r.resolved == 0, rs)))
+    rs_resolved = list(map(lambda r: {'name': r.res_name.decode(), 'url': r.url.decode(), 'votes_for': r.votes_for / 255, 'votes_total': r.votes_total / 255, 'end': r.end_timestamp}, filter(lambda r: r.resolved == 1, rs)))
     return {
         'unfinalized': rs_unresolved,
         'finalized': rs_resolved,
@@ -56,8 +56,19 @@ def voters_json(request, session):
 
 @give_session
 def votes_json(request, session):
-    rs = session.query(Vote).all()
-    return {'votes': list(map(lambda v: {'res_name': v.res_name.decode(), 'address': v.address, 'txid': v.nulldata.txid, 'vote_num': v.vote_num}, rs))}
+    rs = filter(lambda v: v.superseded == False, session.query(Vote).all())
+    return {'votes': list(map(lambda v: {'res_name': v.res_name.decode(), 'address': v.address, 'txid': v.nulldata.txid, 'vote_num': v.vote_num, 'vote_superseded': v.superseded}, rs))}
+
+
+@give_session
+def res_detail_json(request, session):
+    res = session.query(Resolution).filter(Resolution.res_name == request.json_body['res_name'].encode()).one()
+    vs = session.query(Vote).filter(Vote.res_name == res.res_name).filter(Vote.superseded == False).all()
+    return {
+        'resolution': {'categories': res.categories, 'url': res.url.decode(), 'end': res.end_timestamp, 'votes_for': res.votes_for / 255,
+                       'votes_total': res.votes_total / 255, 'resolved': res.resolved, 'res_name': res.res_name.decode()},
+        'votes': [{'address': v.address, 'txid': v.nulldata.txid, 'vote_num': v.vote_num} for v in vs],
+    }
 
 
 def main(global_config, **settings):
@@ -77,6 +88,9 @@ def main(global_config, **settings):
 
     config.add_route('votes', '/votes')
     config.add_view(votes_json, route_name='votes', renderer='json')
+
+    config.add_route('res_detail', '/res_detail')
+    config.add_view(res_detail_json, route_name='res_detail', renderer='json')
 
     config.add_static_view(name='static', path='nvbtally:static')
 

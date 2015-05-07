@@ -7,18 +7,29 @@
         refresh_map[tab_name]();
     };
 
+    nonNaN = function(number){
+        return (!isNaN(number) ? number : 0)
+    }
+
+    res_detail_name = '';
+
     app = angular.module("nvbApp", []);
 
-    app.controller('TabController', ['$log', function($log){
+    app.controller('TabController', ['$log', '$location', function($log, $location){
         var tab = this;
         tab.tabsLeft = ['info', 'resolutions', 'votes'];
         tab.tabsRight = ['voters', 'about'];
 
         tab.set = function(t){
             tab.current = t;
+            $location.hash(t);
             $log.log('Setting tab to: ' + t);
         }
-        tab.set('info');
+        if ($location.hash() == ''){
+            tab.set('info');
+        }else{
+            tab.set($location.hash());
+        }
 
         tab.is = function(t){
             return (t == tab.current);
@@ -46,7 +57,7 @@
         add_refresh('info', info.refresh);
     }]);
 
-    app.controller('ResolutionCtrl', ['$log', '$http', function($log, $http){
+    app.controller('ResolutionCtrl', ['$log', '$http', '$scope', '$rootScope', function($log, $http, $scope, $rootScope){
         var res = this;
 
         res.refresh = function(){
@@ -61,6 +72,11 @@
         };
         res.refresh();
         add_refresh('resolutions', res.refresh);
+
+        res.set_detail = function(res_name){
+            res_detail_name = res_name;
+            refresh_name('res_detail');
+        }
     }]);
 
     app.controller('VotesCtrl', ['$log', '$http', function($log, $http){
@@ -96,6 +112,30 @@
         };
         voters.refresh();
         add_refresh('voters', voters.refresh);
+    }]);
+
+    app.controller('ResolutionDetailCtrl', ['$log', '$http', '$scope', function($log, $http, $scope){
+        var resdet = this;
+        resdet.name = '';
+
+        resdet.refresh = function(){
+            resdet.res = {};
+            resdet.votes = [];
+            resdet.name = res_detail_name;
+            $log.log(resdet.name);
+            if (resdet.name != ''){
+                $http.post('/res_detail', {res_name: resdet.name})
+                    .success(function(data){
+                        resdet.res = data.resolution;
+                        resdet.votes = data.votes;
+                        $log.log(data.resolution);
+                    })
+                    .error(function(error,a,b,c){
+                    });
+            }
+        };
+        resdet.refresh();
+        add_refresh('res_detail', resdet.refresh);
     }]);
 
 })();

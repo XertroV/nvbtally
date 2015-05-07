@@ -76,12 +76,14 @@
                             <tr>
                                 <th>Name</th>
                                 <th>URL</th>
+                                <th>Predicted In Favour</th>
                                 <th>End Time</th>
                             </tr>
-                            <tr ng-repeat="r in res.unfinalized">
-                                <td>{{r[0]}}</td>
-                                <td>{{r[1]}}</td>
-                                <td>{{r[2] * 1000 | date : 'hh:mm dd/MM/yy' }}</td>
+                            <tr ng-repeat="row in res.unfinalized">
+                                <td><a href="#res_detail" ng-click="res.set_detail(row['name']); tab.set('res_detail')">{{row['name']}}</a></td>
+                                <td>{{row['url']}}</td>
+                                <td>{{(row['predicted_total'] == 0) ? (0) : (row['predicted_for'] / row['predicted_total'] * 100) | number:2}}%</td>
+                                <td>{{row['end'] * 1000 | date : 'hh:mm dd/MM/yy' }}</td>
                             </tr>
                         </table>
                     </div>
@@ -96,17 +98,41 @@
                                 <th>Votes In Favour</th>
                             </tr>
                             <tr ng-repeat="row in res.finalized">
-                                <td>{{row[0]}}</td>
-                                <td>{{row[1]}}</td>
-                                <td>{{row[2]}}</td>
-                                <td>{{row[3]}}</td>
-                                <td>{{(row[3] != 0) ? (100.0 * row[2] / row[3]) : 0 | number:2}}%</td>
+                                <td><a href="#res_detail" ng-click="res.set_detail(row['name']); tab.set('res_detail')">{{row['name']}}</a></td>
+                                <td>{{row['url']}}</td>
+                                <td>{{row['votes_for']}}</td>
+                                <td>{{row['votes_total']}}</td>
+                                <td>{{ (row['votes_total'] == 0) ? 0 : (100.0 * row['votes_for'] / row['votes_total']) | number:2 }}%</td>
                             </tr>
                         </table>
                     </div>
                 </div>
         
         
+                <div class="content" ng-show="tab.is('res_detail')" ng-controller="ResolutionDetailCtrl as resdet">
+                    <h1>Resolution {{resdet.res['res_name']}}</h1><hr>
+                    <table class="table">
+                        <tr ng-repeat="(key, value) in resdet.res">
+                            <th>{{key}}</th><td>{{value}}</td>
+                        </tr>
+                    </table>
+
+                    <h2>Votes on {{resdet.res['res_name']}}</h2><hr>
+                    <table class="table">
+                        <tr>
+                            <th>Voter</th>
+                            <th>Vote Scalar</th>
+                            <th>TXID</th>
+                        </tr>
+                        <tr ng-repeat="vote in resdet.votes">
+                            <td>{{vote['address']}}</td>
+                            <td>{{vote['vote_num'] * 100 / 255 | number : 2}}%</td>
+                            <td><a href="https://blockchain.info/tx/{{vote['txid']}}">{{vote['txid'] | limitTo:12}}...</a></td>
+                        </tr>
+                    </table>
+                </div>
+
+
                 <div class="content" ng-show="tab.is('votes')" ng-controller="VotesCtrl as votes">
                     <h1>NVB Votes</h1><hr>
                     <table class="table">
