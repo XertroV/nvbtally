@@ -98,6 +98,9 @@ class Delegate(Base):
     voter_id = Column(Integer, ForeignKey('valid_voters.id'), primary_key=True)
     delegate_id = Column(Integer, ForeignKey('valid_voters.id'))
 
+    voter = relationship("ValidVoter", foreign_keys="Delegate.voter_id")
+    delegate = relationship("ValidVoter", foreign_keys="Delegate.delegate_id")
+
 
 class Resolution(Base):
     __tablename__ = 'resolutions'

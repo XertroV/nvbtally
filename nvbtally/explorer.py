@@ -25,6 +25,14 @@ def give_session(f):
     return inner
 
 
+
+def get_delegate_address(voter, session):
+    delegate = session.query(Delegate).filter(Delegate.voter_id == voter.id).first()
+    if delegate is None:
+        return None
+    return delegate.voter.address
+
+
 def index_view(request):
     return {}
 
@@ -59,14 +67,13 @@ def resolutions_json(request, session):
 @give_session
 def voters_json(request, session):
     vs = session.query(ValidVoter).all()
-    return {'voters': list(map(lambda v: {'address': v.address, 'empowerment': v.votes_empowered}, vs))}
+    return {'voters': list(map(lambda v: {'address': v.address, 'empowerment': v.votes_empowered, 'delegate': get_delegate_address(v, session)}, vs))}
 
 
 @give_session
 def voter_detail_json(request, session):
     voter = session.query(ValidVoter).filter(ValidVoter.address == request.json_body['address']).one()
-    delegate_map = session.query(Delegate).filter(Delegate.voter_id == voter.id).first()
-    delegate_addr = None if delegate_map is None else session.query(ValidVoter).filter(ValidVoter.id == delegate_map.delegate_id).one().address
+    delegate_addr = get_delegate_address(voter, session)
     votes = session.query(Vote).filter(Vote.address == voter.address).all()
     return {
         'voter': {'delegate': delegate_addr, 'empowerment': voter.votes_empowered, 'num_votes': len(votes), 'address': voter.address},
@@ -97,6 +104,7 @@ def main(global_config, **settings):
 
     config.add_route('index', '/')
     config.add_view(index_view, route_name='index', renderer='templates/index.pt')
+
     config.add_route('info', '/info')
     config.add_view(info_json, route_name='info', renderer='json')
 

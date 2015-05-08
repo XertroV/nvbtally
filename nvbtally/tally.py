@@ -93,6 +93,11 @@ class Tallier:
             vote.superseded = True
         list(map(mark, self.session.query(Vote).filter(Vote.address == address).filter(Vote.res_name == res_name).all()))
 
+    def set_default_delegate(self, address):
+        voter_id = self.session.query(ValidVoter.id).filter(ValidVoter.address == address).one()[0]
+        if self.session.query(Delegate).filter(Delegate.voter_id == voter_id).first() is None:
+            self.session.merge(Delegate(voter_id=voter_id, delegate_id=voter_id))
+
     def _assert(self, condition, msg):
         if not condition:
             raise Exception(msg)
@@ -138,12 +143,14 @@ class Tallier:
                     elif op_type == EmpowerVote:
                         self._assert(nulldata.address == self.network_settings.admin_address, 'Admin required')
                         self.session.merge(ValidVoter(address=op.address_pretty(), votes_empowered=int.from_bytes(op.votes, ENDIAN)))
+                        self.set_default_delegate(op.address_pretty())
                     elif op_type == DelegateVote:
                         original_voter = self.session.query(ValidVoter).filter(ValidVoter.address == nulldata.address).one()
                         delegate_voter = self.session.query(ValidVoter).filter(ValidVoter.address == op.address_pretty()).first()
                         if delegate_voter is None:
                             self.session.merge(ValidVoter(address=op.address_pretty(), votes_empowered=0))  # allowed to make a valid voter with 0 on new delegation
                             delegate_voter = self.session.query(ValidVoter).filter(ValidVoter.address == op.address_pretty()).one()
+                            self.set_default_delegate(op.address_pretty())
                         self.session.merge(Delegate(voter_id=original_voter.id, delegate_id=delegate_voter.id))
                     elif op_type == ModResolution:
                         self._assert(nulldata.address == self.network_settings.admin_address, 'Requires Admin')

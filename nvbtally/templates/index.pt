@@ -156,10 +156,12 @@
                     <table class="table">
                         <tr>
                             <th>Public ID</th>
+                            <th>Delegate</th>
                             <th>Number of votes</th>
                         </tr>
                         <tr ng-repeat="voter in voters.list">
                             <td><a href="#" ng-click="tab.set_voter_detail(voter['address']); tab.set('voter_detail')">{{voter['address']}}</a></td>
+                            <td><a href="#" ng-click="tab.set_voter_detail(voter['delegate']); tab.set('voter_detail')">{{voter['delegate']}}</a></td>
                             <td>{{voter['empowerment']}}</td>
                         </tr>
                     </table>
