@@ -151,12 +151,14 @@
         votdet.refresh = function(){
             votdet.voter = {};
             votdet.votes = [];
+            votdet.delegators = [];
             votdet.address = voter_detail_address;
             if (votdet.address != ''){
                 $http.post('/voter_detail', {address: votdet.address})
                     .success(function(data){
                         votdet.voter = data.voter;
                         votdet.votes = data.votes;
+                        votdet.delegators = data.delegators;
                     })
                     .error(function(error,a,b,c){
                     });

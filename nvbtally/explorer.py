@@ -75,9 +75,11 @@ def voter_detail_json(request, session):
     voter = session.query(ValidVoter).filter(ValidVoter.address == request.json_body['address']).one()
     delegate_addr = get_delegate_address(voter, session)
     votes = session.query(Vote).filter(Vote.address == voter.address).all()
+    delegators = session.query(Delegate).filter(Delegate.delegate_id == voter.id).all()
     return {
         'voter': {'delegate': delegate_addr, 'empowerment': voter.votes_empowered, 'num_votes': len(votes), 'address': voter.address},
-        'votes': [{'res_name': v.res_name.decode(), 'superseded': v.superseded, 'vote_num': v.vote_num / 255, 'txid': v.nulldata.txid} for v in votes]
+        'votes': [{'res_name': v.res_name.decode(), 'superseded': v.superseded, 'vote_num': v.vote_num / 255, 'txid': v.nulldata.txid} for v in votes],
+        'delegators': [{'address': d.voter.address} for d in delegators],
     }
 
 

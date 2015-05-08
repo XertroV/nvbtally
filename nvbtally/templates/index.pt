@@ -190,6 +190,16 @@
                             <td>{{vote['superseded']}}</td>
                         </tr>
                     </table>
+
+                    <h3>Delegators</h3><hr>
+                    <table class="table">
+                        <tr>
+                            <th>Address</th>
+                        </tr>
+                        <tr ng-repeat="delegator in votdet.delegators">
+                            <td>{{delegator['address']}}</td>
+                        </tr>
+                    </table>
                 </div>
 
                 <div class="content" ng-show="tab.is('about')">
