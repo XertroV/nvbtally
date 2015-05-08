@@ -30,7 +30,7 @@ def get_delegate_address(voter, session):
     delegate = session.query(Delegate).filter(Delegate.voter_id == voter.id).first()
     if delegate is None:
         return None
-    return delegate.voter.address
+    return delegate.delegate.address
 
 
 def index_view(request):
