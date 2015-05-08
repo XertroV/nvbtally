@@ -102,7 +102,7 @@
                                 <td>{{row['url']}}</td>
                                 <td>{{row['votes_for']}}</td>
                                 <td>{{row['votes_total']}}</td>
-                                <td>{{ (row['votes_total'] == 0) ? 0 : (100.0 * row['votes_for'] / row['votes_total']) | number:2 }}%</td>
+                                <td>{{ (row['votes_total'] == 0) ? 0 : (row['votes_for'] / row['votes_total'] * 100) | number:2}}%</td>
                             </tr>
                         </table>
                     </div>
@@ -126,7 +126,7 @@
                         </tr>
                         <tr ng-repeat="vote in resdet.votes">
                             <td><a href="#" ng-click="tab.set_voter_detail(vote['address']); tab.set('voter_detail')">{{vote['address']}}</a></td>
-                            <td>{{vote['vote_num'] * 100 / 255 | number : 2}}%</td>
+                            <td>{{vote['vote_num'] / 255 | number : 3}}</td>
                             <td><a href="https://blockchain.info/tx/{{vote['txid']}}">{{vote['txid'] | limitTo:12}}...</a></td>
                         </tr>
                     </table>
@@ -139,13 +139,13 @@
                         <tr>
                             <th>Resolution</th>
                             <th>Voter</th>
-                            <th>Vote in Favour</th>
+                            <th>Vote Scalar</th>
                             <th>TXID</th>
                         </tr>
                         <tr ng-repeat="row in votes.list">
                             <td><a href="#" ng-click="tab.set_res_detail(row['res_name']); tab.set('res_detail')">{{row['res_name']}}</a></td>
                             <td><a href="#" ng-click="tab.set_voter_detail(row['address']); tab.set('voter_detail')">{{row['address']}}</a></td>
-                            <td>{{row['vote_num'] * 100 / 255 | number : 2}}%</td>
+                            <td>{{row['vote_num'] / 255 | number : 3}}</td>
                             <td><a href="https://blockchain.info/tx/{{row['txid']}}">{{row['txid'] | limitTo:12}}...</a></td>
                         </tr>
                     </table>
@@ -184,7 +184,7 @@
                         <tr ng-repeat="vote in votdet.votes">
                             <td><a href="#" ng-click="tab.set_res_detail(vote['res_name']); tab.set('res_detail')">{{vote['res_name']}}</a></td>
                             <td><a href="https://blockchain.info/tx/{{vote['txid']}}">{{vote['txid'] | limitTo:12}}...</a></td>
-                            <td>{{vote['vote_num'] | number:2}}</td>
+                            <td>{{vote['vote_num'] | number:3}}</td>
                             <td>{{vote['superseded']}}</td>
                         </tr>
                     </table>
