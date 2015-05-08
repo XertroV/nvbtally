@@ -96,7 +96,7 @@ def main(global_config, **settings):
     config.include('pyramid_chameleon')
 
     config.add_route('index', '/')
-    config.add_view(index_view, route_name='index', renderer='index.pt')
+    config.add_view(index_view, route_name='index', renderer='templates/index.pt')
     config.add_route('info', '/info')
     config.add_view(info_json, route_name='info', renderer='json')
 
