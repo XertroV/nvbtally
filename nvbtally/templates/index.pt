@@ -207,14 +207,24 @@
                 </div>
 
                 <div class="content" ng-show="tab.is('search')">
-                    <h1>Search</h1><hr>
-                    <form>
-                        <div class="form-group">
-                            <label for="address-search">Public ID Search:</label>
-                            <input type="text" class="form-control" id="address-search" placeholder="address">
-                            <button ng-click="" class="btn btn-default">Search Public IDs</button>
-                        </div>
-                    </form>
+                    <div class="col-md-offset-2 col-md-8">
+                        <h1>Search</h1><hr>
+                        <div class="alert alert-warning"><strong>Warning:</strong> only exact searches are currently implemented and no bad feedback is given if a resolution or public ID is not found.</div>
+                        <form>
+                            <div class="form-group">
+                                <label for="address-search">Public ID Search</label>
+                                <input ng-model="search_address" type="text" class="form-control" id="address-search" placeholder="address">
+                            </div>
+                            <button ng-click="tab.set_voter_detail(search_address)" class="btn btn-default">Search Public IDs</button>
+                        </form>
+                        <form>
+                            <div class="form-group">
+                                <label for="res-search">Resolution Search</label>
+                                <input ng-model="search_resolution" type="text" class="form-control" id="res-search" placeholder="Resolution (e.g. T-001)">
+                            </div>
+                            <button ng-click="tab.set_res_detail(search_resolution)" class="btn btn-default">Search Resolutions</button>
+                        </form>
+                    </div>
                 </div>
                 
             </div>

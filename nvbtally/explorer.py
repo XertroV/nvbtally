@@ -18,9 +18,16 @@ def _all_b_to_str(l):
 
 def give_session(f):
     def inner(request):
-        s = Session()
-        r = f(request, s)
-        s.close()
+        exception = None
+        try:
+            s = Session()
+            r = f(request, s)
+        except Exception as e:
+            exception = e
+        finally:
+            s.close()
+            if exception is not None:
+                raise exception
         return r
     return inner
 
