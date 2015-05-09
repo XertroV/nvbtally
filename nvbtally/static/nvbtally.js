@@ -19,7 +19,7 @@
     app.controller('TabController', ['$log', '$location', function($log, $location){
         var tab = this;
         tab.tabsLeft = ['info', 'resolutions', 'votes'];
-        tab.tabsRight = ['voters', 'about'];
+        tab.tabsRight = ['voters', 'search', 'about'];
 
         tab.set = function(t){
             tab.current = t;
@@ -43,11 +43,13 @@
         tab.set_res_detail = function(name){
             res_detail_name = name;
             refresh_name('res_detail');
+            tab.set('res_detail');
         };
 
         tab.set_voter_detail = function(address){
             voter_detail_address = address;
             refresh_name('voter_detail');
+            tab.set('voter_detail');
         };
     }]);
 
