@@ -25,7 +25,7 @@ class Updater:
         self.session = self.Session()
         self.session.add(ScannedBlock(height=0))
 
-    def run(self, starting_block=350000, run_forever=False, sleep_for=30):
+    def run(self, starting_block=351816, run_forever=False, sleep_for=30):
         q = Queue()
 
         top_block = get_latest_block().height - CONFIRMATIONS_NEEDED
@@ -80,4 +80,4 @@ args = parser.parse_args()
 
 if __name__ == "__main__":
     u = Updater()
-    u.run(350000, args.watch, args.sleepfor)
+    u.run(351816, args.watch, args.sleepfor) # 351817 is the first NVB tx, so don't bother before this
