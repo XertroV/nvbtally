@@ -47,7 +47,7 @@ class Tallier:
     def find_votes_or_delegates_and_carry(self, l_address_pairs, resolution):
         votes = []
         delegates = []
-        for address, carry in l_address_pairs:
+        for address, carry, seen in l_address_pairs:
             vote = self.session.query(Vote).filter(Vote.res_name == resolution.res_name).filter(Vote.address == address).order_by(desc(Vote.height)).first()
             if vote is None:
                 voter = self.session.query(ValidVoter).filter(ValidVoter.address == address).one()
@@ -57,7 +57,8 @@ class Tallier:
                 if delegate is None:
                     pass  # explicitly abstain
                 else:
-                    delegates.append((delegate.address, carry))
+                    seen.add(address)
+                    delegates.append((delegate.address, carry, seen))
             else:
                 empowerment = self.session.query(ValidVoter).filter(ValidVoter.address == carry).one().votes_empowered
                 votes.append((vote.address, empowerment, vote.vote_num))
@@ -68,11 +69,11 @@ class Tallier:
         self._assert(resolution.resolved == 0, 'resolve_resolution(): Resolution must not be resolved')
         valid_voters = self.session.query(ValidVoter).all()
         addresses = [v.address for v in valid_voters]
-        l_address_pairs = [(a, a) for a in addresses]
+        l_address_pairs = [(a, a, set()) for a in addresses]
         votes = []
         while len(l_address_pairs) > 0:
             vs, ds = self.find_votes_or_delegates_and_carry(l_address_pairs, resolution)
-            l_address_pairs = list(filter(lambda t: t[0] != t[1], ds))
+            l_address_pairs = list(filter(lambda t: not t[0] in t[2], ds))  # filter out
             votes.extend(vs)
         votes_for = sum(map(lambda v: v[1] * v[2], votes))
         votes_total = sum(map(lambda v: v[1] * 255, votes))
