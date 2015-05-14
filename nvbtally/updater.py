@@ -16,7 +16,7 @@ from .coinsecrets import get_block_range, get_blocks
 
 from .models import engine, Nulldata, ScannedBlock
 
-CONFIRMATIONS_NEEDED = 6
+CONFIRMATIONS_NEEDED = 2
 
 class Updater:
 
@@ -24,6 +24,11 @@ class Updater:
         self.Session = sessionmaker(bind=engine)
         self.session = self.Session()
         self.session.add(ScannedBlock(height=0))
+
+    def strip_after(self, height):
+        self.session.query(Nulldata).filter(Nulldata.height >= height).delete()
+        self.session.query(ScannedBlock).filter(ScannedBlock.height >= height).delete()
+        self.session.commit()
 
     def run(self, starting_block=351816, run_forever=False, sleep_for=30):
         q = Queue()
@@ -76,8 +81,14 @@ class Updater:
 parser = argparse.ArgumentParser(description="Update DB with new OP_RETURN txs.")
 parser.add_argument('--watch', help='Remain open and wait for new blocks.', action='store_true')
 parser.add_argument('--sleepfor', help='Seconds to sleep after update routine', type=int, default=30)
+parser.add_argument('--strip-after', help='Remove all nulldatas from height H or up', type=int)
+parser.add_argument('--start-from', help='Scan all nulldatas occuring in or after this block', type=int, default=351816)
 args = parser.parse_args()
 
 if __name__ == "__main__":
     u = Updater()
-    u.run(351816, args.watch, args.sleepfor) # 351817 is the first NVB tx, so don't bother before this
+    if args.strip_after is not None:
+        print('Stripped from %d onwards' % args.strip_after)
+        u.strip_after(args.strip_after)
+    else:
+        u.run(args.start_from, args.watch, args.sleepfor)  # 351817 is the first NVB tx, so don't bother before this
