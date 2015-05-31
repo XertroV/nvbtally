@@ -33,6 +33,7 @@ class Updater:
     def run(self, starting_block=351816, run_forever=False, sleep_for=30):
         q = Queue()
 
+        # 1 confirmation should mean top_block = latest_block.height, offset of 1 needed
         top_block = get_latest_block().height - CONFIRMATIONS_NEEDED + 1
         min_block = starting_block
 
