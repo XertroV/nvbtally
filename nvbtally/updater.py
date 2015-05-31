@@ -16,7 +16,7 @@ from .coinsecrets import get_block_range, get_blocks
 
 from .models import engine, Nulldata, ScannedBlock
 
-CONFIRMATIONS_NEEDED = 2
+CONFIRMATIONS_NEEDED = 2  # keep this at 2, if reorgs are required we can use strip_after
 
 class Updater:
 
@@ -33,7 +33,7 @@ class Updater:
     def run(self, starting_block=351816, run_forever=False, sleep_for=30):
         q = Queue()
 
-        top_block = get_latest_block().height - CONFIRMATIONS_NEEDED
+        top_block = get_latest_block().height - CONFIRMATIONS_NEEDED + 1
         min_block = starting_block
 
         cached_blocks = set()
