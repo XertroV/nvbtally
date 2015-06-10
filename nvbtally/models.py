@@ -101,8 +101,8 @@ class NetworkSettings(Base):
 class ValidVoter(Base):
     __tablename__ = 'valid_voters'
 
-    id = Column(Integer, primary_key=True, unique=True)  # Todo: check if we *need* uniques here
-    address = Column(String, primary_key=True, unique=True)
+    id = Column(Integer, primary_key=True)  # Todo: check if we *need* uniques here
+    address = Column(String, unique=True)
     votes_empowered = Column(Integer)
 
 

@@ -103,6 +103,9 @@ class Tallier:
     def voter_from_address(self, address):
         return self.session.query(ValidVoter).filter(ValidVoter.address == address).one()
 
+    def voter_from_address_or_none(self, address):
+        return self.session.query(ValidVoter).filter(ValidVoter.address == address).first()
+
     def assert_admin(self, address):
         self._assert(address == self.network_settings.admin_address, 'Requires Admin')
 
@@ -116,7 +119,11 @@ class Tallier:
 
     def op_empower_vote(self, op, nulldata):
         self.assert_admin(nulldata.address)
-        self.session.merge(ValidVoter(address=op.address_pretty(), votes_empowered=int.from_bytes(op.votes, ENDIAN)))
+        empowering_voter = self.voter_from_address_or_none(op.address_pretty())
+        if empowering_voter is None:
+            self.session.merge(ValidVoter(address=op.address_pretty(), votes_empowered=int.from_bytes(op.votes, ENDIAN)))
+        else:
+            self.session.merge(ValidVoter(id=empowering_voter.id, address=op.address_pretty(), votes_empowered=int.from_bytes(op.votes, ENDIAN)))
         self.set_default_delegate(op.address_pretty())
 
     def op_delegate_vote(self, op, nulldata):
