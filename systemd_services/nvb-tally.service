@@ -2,9 +2,10 @@
 Description=Tallier for BlocVoting
 
 [Service]
-# note, this currently will drop temp.sqlite in the root directory and is running under the root user
 ExecStart=/usr/bin/python3 -m nvbtally.sync_all
 Restart=on-abort
+User=user
+WorkingDirectory=/home/user/prod/nvbtally
 
 [Install]
 WantedBy=multi-user.target
