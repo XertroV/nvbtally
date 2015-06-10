@@ -17,8 +17,7 @@ from nvblib import instruction_lookup, op_code_lookup, get_op
 from nvblib import CreateNetwork, CastVote, DelegateVote, EmpowerVote, ModResolution, EnableTransfer, DisableTransfer, TransferIdentity
 from nvblib.constants import ENDIAN
 
-from .models import engine, Nulldata, FilteredNulldata, RawVote, Vote, ProcessedVote, Resolution, ValidVoter, NetworkSettings, Delegate, TransferEnabled, Transfers
-
+from .models import engine, Nulldata, FilteredNulldata, RawVote, Vote, ProcessedVote, Resolution, ValidVoter, NetworkSettings, Delegate, TransferEnabled, Transfers, tally_tables
 
 import logging
 
@@ -27,6 +26,7 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
 
 admin_default = a2b_base58('13MRso7BA6AxEye7PrfT6TdzVHXLZ2DCD5')
 name_default = b'\x04test'
+
 
 class Tallier:
 
@@ -37,12 +37,8 @@ class Tallier:
         self.reset_network_settings()
 
     def reset_db(self):
-        engine.execute("DROP TABLE processed_votes")
-        engine.execute("DROP TABLE network_settings")
-        engine.execute("DROP TABLE resolutions")
-        engine.execute("DROP TABLE valid_voters")
-        engine.execute("DROP TABLE votes")
-        engine.execute("DROP TABLE delegates")
+        for table in tally_tables:
+            engine.execute("DROP TABLE %s" % table.__tablename__)
 
     def find_votes_or_delegates_and_carry(self, l_address_pairs, resolution):
         votes = []

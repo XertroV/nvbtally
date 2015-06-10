@@ -9,6 +9,10 @@ from sqlalchemy.ext.declarative import declarative_base
 engine = create_engine('sqlite:///temp.sqlite', connect_args={'timeout': 15})#, echo=True)
 Base = declarative_base()
 
+#
+# Updater
+#
+
 
 class Nulldata(Base):
     __tablename__ = 'nulldatas'
@@ -31,6 +35,11 @@ class ScannedBlock(Base):
     height = Column(Integer)
 
 
+#
+# filter_votes
+#
+
+
 class FilteredNulldata(Base):
     __tablename__ = 'filtered_nulldatas'
 
@@ -45,6 +54,11 @@ class RawVote(Base):
     nulldata_id = Column(Integer, ForeignKey('nulldatas.id'), unique=True)
 
     nulldata = relationship("Nulldata", uselist=False, backref='raw_vote')
+
+
+#
+# tally
+#
 
 
 class ProcessedVote(Base):
@@ -128,5 +142,7 @@ class TransferEnabled(Base):
     voter_id = Column(Integer, ForeignKey('valid_voters.id'), primary_key=True)
     transfer_enabled = Column(Boolean, default=False)
 
+
+tally_tables = [ProcessedVote, NetworkSettings, Resolution, ValidVoter, Vote, Delegate, TransferEnabled, Transfers]
 
 Base.metadata.create_all(engine)
