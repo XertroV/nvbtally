@@ -39,6 +39,7 @@ class Tallier:
     def reset_db(self):
         for table in tally_tables:
             engine.execute("DROP TABLE %s" % table.__tablename__)
+            print("Dropping %s" % table.__tablename__)
 
     def find_votes_or_delegates_and_carry(self, l_address_pairs, resolution):
         votes = []

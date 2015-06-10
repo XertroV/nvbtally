@@ -1,0 +1,9 @@
+[Unit]
+Description=Vote Explorer for BlocVoting
+
+[Service]
+ExecStart=/usr/bin/pserve /home/user/prod/nvbtally/development.ini
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
