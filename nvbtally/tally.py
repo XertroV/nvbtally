@@ -106,6 +106,37 @@ class Tallier:
     def voter_from_address(self, address):
         return self.session.query(ValidVoter).filter(ValidVoter.address == address).one()
 
+    def assert_admin(self, address):
+        self._assert(address == self.network_settings.admin_address, 'Requires Admin')
+
+    def op_cast_vote(self, op, nulldata):
+        resolution = self.session.query(Resolution).filter(Resolution.res_name == op.resolution).one()
+        self._assert(nulldata.timestamp < resolution.end_timestamp, 'Cannot modify a vote for a resolution that has finished.')
+        voter = self.voter_from_address(nulldata.address)
+        self.mark_superseded(voter.address, resolution.res_name)
+        self.session.merge(Vote(vote_num=int.from_bytes(op.vote_number, ENDIAN), res_name=resolution.res_name, nulldata_id=nulldata.id, voter_id=voter.id, address=nulldata.address, height=nulldata.height))
+        self.resolve_resolution(resolution, final=False)
+
+    def op_empower_vote(self, op, nulldata):
+        self.assert_admin(nulldata.address)
+        self.session.merge(ValidVoter(address=op.address_pretty(), votes_empowered=int.from_bytes(op.votes, ENDIAN)))
+        self.set_default_delegate(op.address_pretty())
+
+    def op_delegate_vote(self, op, nulldata):
+        original_voter = self.voter_from_address(nulldata.address)
+        delegate_voter = self.session.query(ValidVoter).filter(ValidVoter.address == op.address_pretty()).first()
+        if delegate_voter is None:
+            self.session.merge(ValidVoter(address=op.address_pretty(), votes_empowered=0))  # allowed to make a valid voter with 0 on new delegation
+            delegate_voter = self.voter_from_address(op.address_pretty())
+            self.set_default_delegate(op.address_pretty())
+        self.session.merge(Delegate(voter_id=original_voter.id, delegate_id=delegate_voter.id))
+
+    def op_mod_resolution(self, op, nulldata):
+        self.assert_admin(nulldata.address)
+        # test there are no resolved resolutions matching op.resolution
+        self._assert(self.session.query(Resolution).filter(Resolution.res_name == op.resolution).filter(Resolution.resolved == 1).first() is None, 'Cannot modify a resolved resolution')
+        self.session.merge(Resolution(res_name=op.resolution, url=op.url, end_timestamp=int.from_bytes(op.end_timestamp, ENDIAN), categories=int.from_bytes(op.categories, ENDIAN), resolved=0))
+
     def op_enable_transfer(self, op, nulldata):
         voter = self.voter_from_address(nulldata.address)
         self.session.merge(TransferEnabled(voter_id=voter.id, transfer_enabled=True))
@@ -154,28 +185,13 @@ class Tallier:
 
                     # this is the main operation centre
                     if op_type == CastVote:
-                        resolution = self.session.query(Resolution).filter(Resolution.res_name == op.resolution).one()
-                        self._assert(nulldata.timestamp < resolution.end_timestamp, 'Cannot modify a vote for a resolution that has finished.')
-                        voter = self.session.query(ValidVoter).filter(ValidVoter.address == nulldata.address).one()
-                        self.mark_superseded(voter.address, resolution.res_name)
-                        self.session.merge(Vote(vote_num=int.from_bytes(op.vote_number, ENDIAN), res_name=resolution.res_name, nulldata_id=nulldata.id, voter_id=voter.id, address=nulldata.address, height=nulldata.height))
-                        self.resolve_resolution(resolution, final=False)
+                        self.op_cast_vote(op, nulldata)
                     elif op_type == EmpowerVote:
-                        self._assert(nulldata.address == self.network_settings.admin_address, 'Admin required')
-                        self.session.merge(ValidVoter(address=op.address_pretty(), votes_empowered=int.from_bytes(op.votes, ENDIAN)))
-                        self.set_default_delegate(op.address_pretty())
+                        self.op_empower_vote(op, nulldata)
                     elif op_type == DelegateVote:
-                        original_voter = self.session.query(ValidVoter).filter(ValidVoter.address == nulldata.address).one()
-                        delegate_voter = self.session.query(ValidVoter).filter(ValidVoter.address == op.address_pretty()).first()
-                        if delegate_voter is None:
-                            self.session.merge(ValidVoter(address=op.address_pretty(), votes_empowered=0))  # allowed to make a valid voter with 0 on new delegation
-                            delegate_voter = self.session.query(ValidVoter).filter(ValidVoter.address == op.address_pretty()).one()
-                            self.set_default_delegate(op.address_pretty())
-                        self.session.merge(Delegate(voter_id=original_voter.id, delegate_id=delegate_voter.id))
+                        self.op_delegate_vote(op, nulldata)
                     elif op_type == ModResolution:
-                        self._assert(nulldata.address == self.network_settings.admin_address, 'Requires Admin')
-                        self._assert(self.session.query(Resolution).filter(Resolution.res_name == op.resolution).filter(Resolution.resolved == 1).first() is None, 'Cannot modify a resolved resolution')
-                        self.session.merge(Resolution(res_name=op.resolution, url=op.url, end_timestamp=int.from_bytes(op.end_timestamp, ENDIAN), categories=int.from_bytes(op.categories, ENDIAN), resolved=0))
+                        self.op_mod_resolution(op, nulldata)
                     elif op_type == EnableTransfer:
                         self.op_enable_transfer(op, nulldata)
                     elif op_type == DisableTransfer:
