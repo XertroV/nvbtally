@@ -14,10 +14,10 @@ from sqlalchemy import desc
 from pycoin.encoding import a2b_base58
 
 from nvblib import instruction_lookup, op_code_lookup, get_op
-from nvblib import CreateNetwork, CastVote, DelegateVote, EmpowerVote, ModResolution
+from nvblib import CreateNetwork, CastVote, DelegateVote, EmpowerVote, ModResolution, EnableTransfer, DisableTransfer, TransferIdentity
 from nvblib.constants import ENDIAN
 
-from .models import engine, Nulldata, FilteredNulldata, RawVote, Vote, ProcessedVote, Resolution, ValidVoter, NetworkSettings, Delegate
+from .models import engine, Nulldata, FilteredNulldata, RawVote, Vote, ProcessedVote, Resolution, ValidVoter, NetworkSettings, Delegate, TransferEnabled, Transfers
 
 
 import logging
@@ -103,6 +103,25 @@ class Tallier:
         if not condition:
             raise Exception(msg)
 
+    def voter_from_address(self, address):
+        return self.session.query(ValidVoter).filter(ValidVoter.address == address).one()
+
+    def op_enable_transfer(self, op, nulldata):
+        voter = self.voter_from_address(nulldata.address)
+        self.session.merge(TransferEnabled(voter_id=voter.id, transfer_enabled=True))
+        self.session.merge(Transfers(voter_id=voter.id, after_time=nulldata.timestamp+24*60*60, new_address=op.address_pretty()))
+
+    def op_transfer(self, op, nulldata):
+        voter = self.voter_from_address(nulldata.address)
+        transfer_enabled = self.session.query(TransferEnabled).filter(TransferEnabled.voter_id == voter.id).one()
+        transfer_details = self.session.query(Transfers).filter(Transfers.voter_id == voter.id).one()
+        self._assert(transfer_details.after_time <= nulldata.timestamp, 'Transfer only triggerable after 24 hours')
+        self._assert(transfer_enabled.transfer_enabled is True, 'Transfer must be enabled for this identity')
+
+    def op_disable_transfer(self, op, nulldata):
+        voter = self.voter_from_address(nulldata.address)
+        self.session.merge(TransferEnabled(voter_id=voter.id, transfer_enabled=False))
+
     def run(self, admin_address=admin_default, network_name=name_default, watch=False, sleep_for=30):
 
         self.reset_network_settings()
@@ -157,7 +176,12 @@ class Tallier:
                         self._assert(nulldata.address == self.network_settings.admin_address, 'Requires Admin')
                         self._assert(self.session.query(Resolution).filter(Resolution.res_name == op.resolution).filter(Resolution.resolved == 1).first() is None, 'Cannot modify a resolved resolution')
                         self.session.merge(Resolution(res_name=op.resolution, url=op.url, end_timestamp=int.from_bytes(op.end_timestamp, ENDIAN), categories=int.from_bytes(op.categories, ENDIAN), resolved=0))
-
+                    elif op_type == EnableTransfer:
+                        self.op_enable_transfer(op, nulldata)
+                    elif op_type == DisableTransfer:
+                        self.op_disable_transfer(op, nulldata)
+                    elif op_type == TransferIdentity:
+                        self.op_transfer(op, nulldata)
                 else:
                     raise Exception('Wrong time for instruction')
                 self.session.commit()  # if we get to the end commit
