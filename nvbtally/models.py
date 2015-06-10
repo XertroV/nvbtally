@@ -114,4 +114,19 @@ class Resolution(Base):
     resolved = Column(Integer, default=0)
 
 
+class Transfers(Base):
+    __tablename__ = 'transfers'
+
+    voter_id = Column(Integer, ForeignKey('valid_voters.id'), primary_key=True)
+    after_time = Column(Integer)
+    new_address = Column(String)
+
+
+class TransferEnabled(Base):
+    __tablename__ = 'transfer_enabled'
+
+    voter_id = Column(Integer, ForeignKey('valid_voters.id'), primary_key=True)
+    transfer_enabled = Column(Boolean, default=False)
+
+
 Base.metadata.create_all(engine)
