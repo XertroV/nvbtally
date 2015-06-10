@@ -59,7 +59,6 @@ class Tallier:
             else:
                 empowerment = self.session.query(ValidVoter).filter(ValidVoter.address == carry).one().votes_empowered
                 votes.append((vote.address, empowerment, vote.vote_num))
-        print(votes, delegates)
         return votes, delegates
 
     def resolve_resolution(self, resolution, final=True):
