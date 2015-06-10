@@ -1,0 +1,9 @@
+[Unit]
+Description=Tallier for BlocVoting
+
+[Service]
+ExecStart=/usr/bin/python3 -m nvbtally.sync_all
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
