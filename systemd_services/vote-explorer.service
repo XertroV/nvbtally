@@ -2,6 +2,7 @@
 Description=Vote Explorer for BlocVoting
 
 [Service]
+# note, this currently will read temp.sqlite from the root directory and is running under the root user
 ExecStart=/usr/bin/pserve /home/user/prod/nvbtally/development.ini
 Restart=on-abort
 
